@@ -77,6 +77,21 @@ cat(paste0("The median of total number of steps per day after imputation is: ", 
 ```
 >*The values of these estimates differ from the estimates of the first part of the assignment. Actually they are higher and they are closer to each other. This result is to be expected as we imputed NAs with the values of the average activity pattern. As we can see from the first histogram NAs had the effect of a high frequency bin for zero total steps (denoting whole days with NAs). At the second histogram we can see that the bin for zero total steps has a lower frequency while the bin for 10000-11000 total steps has a higher frequency. The total number of steps of the average activity pattern are 10762 and days full with NAs now have this total number of steps. Thus, the imputation had the effect of diminishing some outliers (zero total steps resulting from NAs for whole days) and thus the mean is closer to the median.*
 
-
-
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+require(lubridate)
+dataimp$weekday <- wday(dataimp$date, label = T)
+mean_steps_per_interval_weekdays <- dataimp[(dataimp$weekday %in% levels(dataimp$weekday)[2:6]),] %>%
+  group_by(interval) %>%
+  summarize(mean_steps = round(mean(steps, na.rm = TRUE)))
+mean_steps_per_interval_weekends <- dataimp[(dataimp$weekday %in% levels(dataimp$weekday)[c(1,7)]),] %>%
+  group_by(interval) %>%
+  summarize(mean_steps = round(mean(steps, na.rm = TRUE)))
+plot(mean_steps_per_interval_weekdays, type = "l", main = "Average daily activity pattern for weekdays", ylab = "Average steps per interval", xlab = "Interval", ylim=c(0,250))
+plot(mean_steps_per_interval_weekends, type = "l", main = "Average daily activity pattern for weekends", ylab = "Average steps per interval", xlab = "Interval", ylim=c(0,250))
+```
+ 
+>*We can see the differences in activity patterns between weekdays and weekends. At weekends there are less average steps during the morning (7-9) than at weekdays but there are more steps during the day.*
+
+
+
