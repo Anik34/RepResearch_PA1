@@ -20,18 +20,21 @@ data <- read_csv(unz("activity.zip", "activity.csv") )
 count_steps_per_date <- data %>%
   group_by(date) %>%
   summarize(count_steps = sum(steps, na.rm = TRUE))
-hist(count_steps_per_date$count_steps,
+
+hist(count_steps_per_date$count_steps, breaks = 20,
      main = "Histogram of total number of steps per day",
-     xlab = "Total number of steps per day")
-cat(paste0("The mean of total number of steps per day is: ",  mean(count_steps_per_date$count_steps)))
-cat(paste0("The median of total number of steps per day is: ",  median(count_steps_per_date$count_steps)))
+     xlab = "Total number of steps per day",
+     ylim = c(0,20), xlim = c(0,25000))
+
+cat(paste0("The mean of total number of steps per day is: ",  round(mean(count_steps_per_date$count_steps))))
+cat(paste0("The median of total number of steps per day is: ",  round(median(count_steps_per_date$count_steps))))
 ```
 
 ## What is the average daily activity pattern?
 ```{r}
 mean_steps_per_interval <- data %>%
   group_by(interval) %>%
-  summarize(mean_steps = mean(steps, na.rm = TRUE))
+  summarize(mean_steps = round(mean(steps, na.rm = TRUE)))
 plot(mean_steps_per_interval, type = "l", main = "Average daily activity pattern", ylab = "Average steps per interval", xlab = "Interval")
 cat(paste0("The 5-minute interval, on average across all the days in the dataset, that contains the maximum number of steps is: ",  
            mean_steps_per_interval$interval[which.max(mean_steps_per_interval$mean_steps)]))
@@ -40,6 +43,39 @@ cat(paste0("The 5-minute interval, on average across all the days in the dataset
 
 
 ## Imputing missing values
+```{r}
+cat(paste0("The total number of missing values in the dataset is: ", sum(is.na(data$steps))))
+
+# Copy original data
+dataimp <- data
+# Check for NAs
+colSums(is.na(dataimp))
+# Find the indices for mean_steps_per_interval that match the intervals of NAs in data  
+idx <- match(dataimp$interval[is.na(dataimp$steps)], mean_steps_per_interval$interval)
+# Impute NAs with the average activity pattern values
+dataimp$steps[is.na(dataimp$steps)] <- mean_steps_per_interval$mean_steps[idx]
+# Check for again for NAs
+colSums(is.na(dataimp))
+
+count_steps_per_date_imp <- dataimp %>%
+  group_by(date) %>%
+  summarize(count_steps = sum(steps, na.rm = TRUE))
+
+hist(count_steps_per_date$count_steps, breaks = 20,
+     main = "Histogram of total number of steps per day (with NAs omitted)",
+     xlab = "Total number of steps per day",
+     ylim = c(0,20), xlim = c(0,25000))
+
+hist(count_steps_per_date_imp$count_steps, breaks = 20,
+     main = "Histogram of total number of steps per day (with NAs imputed)",
+     xlab = "Total number of steps per day",
+     ylim = c(0,20), xlim = c(0,25000))
+
+cat(paste0("The mean of total number of steps per day after imputation is: ",  round(mean(count_steps_per_date_imp$count_steps))))
+cat(paste0("The median of total number of steps per day after imputation is: ",  round(median(count_steps_per_date_imp$count_steps))))
+
+```
+>*The values of these estimates differ from the estimates of the first part of the assignment. Actually they are higher and they are closer to each other. This result is to be expected as we imputed NAs with the values of the average activity pattern. As we can see from the first histogram NAs had the effect of a high frequency bin for zero total steps (denoting whole days with NAs). At the second histogram we can see that the bin for zero total steps has a lower frequency while the bin for 10000-11000 total steps has a higher frequency. The total number of steps of the average activity pattern are 10762 and days full with NAs now have this total number of steps. Thus, the imputation had the effect of diminishing some outliers (zero total steps resulting from NAs for whole days) and thus the mean is closer to the median.*
 
 
 
